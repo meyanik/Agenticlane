@@ -1,0 +1,18 @@
+DESIGN_NAME: picosoc_top
+VERILOG_FILES:
+  - "dir::src/picosoc_top.v"
+  - "dir::src/picosoc.v"
+  - "dir::src/picorv32.v"
+  - "dir::src/simpleuart.v"
+  - "dir::src/spimemio.v"
+CLOCK_PORT: clk
+CLOCK_PERIOD: 25.0
+PDK: sky130A
+STD_CELL_LIBRARY: sky130_fd_sc_hd
+
+FP_CORE_UTIL: 40
+FP_ASPECT_RATIO: 1.0
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 1200, 1200]
+PL_TARGET_DENSITY_PCT: 50
+GRT_ADJUSTMENT: 0.25

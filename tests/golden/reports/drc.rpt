@@ -1,0 +1,11 @@
+# Golden DRC report for testing
+DRC Report - my_design
+Date: 2025-01-15
+
+Total violations: 3
+Type: Metal1.MinSpacing
+  Instance: u_core/cell_42 -> u_core/cell_43
+Type: Via1.Enclosure
+  Instance: u_core/via_12
+Type: Metal2.MinWidth
+  Instance: u_io/pad_out

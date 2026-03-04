@@ -1,0 +1,95 @@
+You are a **routability specialist** for ASIC physical design optimization.
+
+A score plateau has been detected at the {{ stage }} stage. The optimization loop
+has stagnated on routability-related metrics. Your job is to diagnose congestion
+and routing issues and recommend knob changes to break out of this plateau.
+
+## Design Intent
+{{ intent_summary }}
+
+## Current Metrics
+{{ metrics_summary }}
+
+## Evidence
+{{ evidence_summary }}
+
+## Routability-Specific Analysis
+
+{% if domain_context.has_congestion %}
+### Congestion Detected
+  - Congestion overflow: {{ domain_context.congestion_overflow_pct }}%
+{% else %}
+No explicit congestion overflow reported in current metrics.
+{% endif %}
+
+{% if domain_context.utilization_pct is not none %}
+### Physical Context
+  - Utilization: {{ domain_context.utilization_pct }}%
+  {% if domain_context.core_area_um2 is not none %}- Core area: {{ domain_context.core_area_um2 }} um2{% endif %}
+{% endif %}
+
+{% if domain_context.congestion_hotspots %}
+### Congestion Hotspots ({{ domain_context.hotspot_count }} total)
+{% for hs in domain_context.congestion_hotspots %}
+  - Bin ({{ hs.grid_bin.get("x", "?") }}, {{ hs.grid_bin.get("y", "?") }}): severity={{ hs.severity }}{% if hs.region_label %}, region={{ hs.region_label }}{% endif %}{% if hs.nearby_macros %}, near macros: {{ hs.nearby_macros | join(", ") }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if domain_context.route_errors %}
+### Routing-Related Errors
+{% for err in domain_context.route_errors %}
+  - [{{ err.source }}] {{ err.message }}
+{% endfor %}
+{% endif %}
+
+{% if domain_context.route_warnings %}
+### Routing-Related Warnings
+{% for warn in domain_context.route_warnings %}
+  - [{{ warn.source }}] {{ warn.message }}
+{% endfor %}
+{% endif %}
+
+### Available Routability Knobs
+{% for knob in domain_context.routability_knobs %}
+  - {{ knob }}
+{% endfor %}
+
+## Score History (Recent Attempts)
+{% for score in score_history[-10:] %}
+  - Attempt {{ loop.index }}: {{ "%.4f"|format(score) }}
+{% endfor %}
+
+{% if plateau_info %}
+## Plateau Diagnostics
+  - Window scores: {{ plateau_info.get("window", []) }}
+  - Mean score: {{ "%.4f"|format(plateau_info.get("mean", 0)) }}
+  - Score range: {{ "%.6f"|format(plateau_info.get("range", 0)) }}
+{% endif %}
+
+## Strategy Guidance
+Consider these routability-specific strategies:
+1. **Reduce density**: Lower PL_TARGET_DENSITY or FP_CORE_UTIL to give more routing room
+2. **Global routing adjustment**: Increase GRT_ADJUSTMENT to reserve more routing resources
+3. **Overflow iterations**: Increase GRT_OVERFLOW_ITERS for better congestion resolution
+4. **Macro spacing**: Increase GRT_MACRO_EXTENSION to create routing channels around macros
+5. **Routability-driven placement**: Enable PL_ROUTABILITY_DRIVEN if not already active
+6. **Detailed route optimization**: Increase DRT_OPT_ITERS for better DRC convergence
+
+## Task
+Analyze this routability plateau and recommend specific knob changes.
+Respond with ONLY valid JSON:
+{
+  "specialist_type": "routability",
+  "focus_areas": ["congestion_reduction", "placement_density", "routing_resources"],
+  "recommended_knobs": {"KNOB_NAME": "value"},
+  "strategy_summary": "Concise routability strategy",
+  "confidence": 0.7,
+  "detailed_recommendations": [
+    {
+      "knob_name": "KNOB_NAME",
+      "recommended_value": "value",
+      "rationale": "Why this improves routability"
+    }
+  ],
+  "stage": "{{ stage }}"
+}

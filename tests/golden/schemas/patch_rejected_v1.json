@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "patch_id": "golden-patch-001",
+  "stage": "FLOORPLAN",
+  "reason_code": "locked_constraint",
+  "offending_channel": "config_vars",
+  "offending_commands": ["CLOCK_PERIOD"],
+  "offending_lines": [],
+  "remediation_hint": "CLOCK_PERIOD is locked and cannot be modified."
+}

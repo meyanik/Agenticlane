@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-03-01T14:23:45.123000Z",
+  "call_id": "call-golden-001",
+  "model": "gemini/gemini-2.5-pro",
+  "provider": "litellm",
+  "role": "worker",
+  "stage": "PLACE_GLOBAL",
+  "attempt": 1,
+  "branch": "B0",
+  "prompt_hash": "sha256:abcdef1234567890",
+  "response_hash": "sha256:0987654321fedcba",
+  "latency_ms": 1250,
+  "tokens_in": 1840,
+  "tokens_out": 512,
+  "structured_output_valid": true,
+  "retries": 0,
+  "error": null
+}

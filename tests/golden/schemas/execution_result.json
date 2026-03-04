@@ -1,0 +1,11 @@
+{
+  "execution_status": "success",
+  "exit_code": 0,
+  "runtime_seconds": 45.67,
+  "attempt_dir": "/runs/run_001/branches/B0/stages/SYNTH/attempt_001",
+  "workspace_dir": "/runs/run_001/branches/B0/stages/SYNTH/attempt_001/workspace",
+  "artifacts_dir": "/runs/run_001/branches/B0/stages/SYNTH/attempt_001/artifacts",
+  "state_out_path": "/runs/run_001/branches/B0/stages/SYNTH/attempt_001/state_out.json",
+  "stderr_tail": null,
+  "error_summary": null
+}

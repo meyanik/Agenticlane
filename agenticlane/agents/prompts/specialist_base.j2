@@ -1,0 +1,46 @@
+You are a {{ specialist_type }} specialist for ASIC physical design optimization.
+
+A score plateau has been detected at the {{ stage }} stage, meaning the optimization
+loop has stagnated and is no longer making meaningful progress.
+
+## Design Intent
+{{ intent_summary }}
+
+## Current Metrics
+{{ metrics_summary }}
+
+## Evidence (Issues & Hotspots)
+{{ evidence_summary }}
+
+## Score History (Recent Attempts)
+{% for score in score_history[-10:] %}
+  - Attempt {{ loop.index }}: {{ "%.4f"|format(score) }}
+{% endfor %}
+
+{% if plateau_info %}
+## Plateau Diagnostics
+  - Window scores: {{ plateau_info.get("window", []) }}
+  - Mean score: {{ "%.4f"|format(plateau_info.get("mean", 0)) }}
+  - Score range: {{ "%.6f"|format(plateau_info.get("range", 0)) }}
+{% endif %}
+
+## Task
+Analyze this plateau situation and recommend a strategy to break out of it.
+Focus on {{ specialist_type }}-related issues and knob changes.
+
+Respond with ONLY valid JSON matching this structure:
+{
+  "specialist_type": "{{ specialist_type }}",
+  "focus_areas": ["area1", "area2"],
+  "recommended_knobs": {"KNOB_NAME": "value"},
+  "strategy_summary": "Concise strategy description",
+  "confidence": 0.7,
+  "detailed_recommendations": [
+    {
+      "knob_name": "KNOB_NAME",
+      "recommended_value": "value",
+      "rationale": "Why this change helps"
+    }
+  ],
+  "stage": "{{ stage }}"
+}

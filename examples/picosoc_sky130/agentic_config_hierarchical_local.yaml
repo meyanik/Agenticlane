@@ -1,0 +1,61 @@
+project:
+  name: "picosoc_sky130_hierarchical"
+  run_id: "auto"
+  output_dir: "./runs"
+
+design:
+  librelane_config_path: "./config.yaml"
+  pdk: "sky130A"
+  flow_mode: "hierarchical"
+  modules:
+    picorv32:
+      librelane_config_path: "./modules/picorv32/config.yaml"
+      verilog_files: ["src/picorv32.v"]
+    spimemio:
+      librelane_config_path: "./modules/spimemio/config.yaml"
+      verilog_files: ["src/spimemio.v"]
+
+execution:
+  mode: "local"
+  tool_timeout_seconds: 7200
+
+intent:
+  prompt: "Optimize PicoSoC hierarchically: harden picorv32 and spimemio as macros, then integrate"
+  weights_hint:
+    timing: 0.6
+    area: 0.4
+
+flow_control:
+  budgets:
+    physical_attempts_per_stage: 5
+    cognitive_retries_per_attempt: 2
+  deadlock_policy: "auto_relax"
+  plateau_detection:
+    window: 12
+    min_delta_score: 0.001
+
+parallel:
+  enabled: false
+  max_parallel_branches: 1
+  max_parallel_jobs: 1
+
+# Local LLM via LM Studio (http://127.0.0.1:1234)
+# No API key needed — runs entirely on your machine.
+llm:
+  mode: "local"
+  provider: "litellm"
+  api_base: "http://127.0.0.1:1234/v1"
+  models:
+    master: "qwen3-32b-mlx@4bit"
+    worker: "qwen3-32b-mlx@4bit"
+    judge:
+      - "qwen3-32b-mlx@4bit"
+  temperature: 0.0
+  seed: 42
+
+# RAG knowledge base — chip design PDFs indexed in ChromaDB
+knowledge:
+  enabled: true
+  db_path: "../../agenticlane/knowledge/chroma_db"
+  top_k: 5
+  score_threshold: 0.35

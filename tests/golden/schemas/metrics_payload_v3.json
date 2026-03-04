@@ -1,0 +1,39 @@
+{
+  "schema_version": 3,
+  "run_id": "run_golden_001",
+  "branch_id": "B0",
+  "stage": "PLACE_GLOBAL",
+  "attempt": 1,
+  "execution_status": "success",
+  "missing_metrics": [],
+  "timing": {
+    "setup_wns_ns": {
+      "nom_tt": -0.15
+    },
+    "hold_wns_ns": {
+      "nom_tt": 0.05
+    },
+    "tns_ns": -2.5,
+    "clock_period_ns": 10.0
+  },
+  "physical": {
+    "core_area_um2": 250000.0,
+    "die_area_um2": 360000.0,
+    "utilization_pct": 68.5,
+    "total_cell_count": 15230,
+    "buf_inv_count": 1820
+  },
+  "route": {
+    "total_overflow": 0,
+    "worst_congestion_direction": "horizontal",
+    "worst_congestion_pct": 45.2
+  },
+  "signoff": {
+    "drc_count": 0,
+    "lvs_pass": true,
+    "antenna_count": 0
+  },
+  "runtime": {
+    "stage_seconds": 123.4
+  }
+}

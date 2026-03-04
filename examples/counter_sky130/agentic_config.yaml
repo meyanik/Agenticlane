@@ -1,0 +1,43 @@
+project:
+  name: "counter_sky130"
+  run_id: "auto"
+  output_dir: "./runs"
+
+design:
+  librelane_config_path: "./config.yaml"
+  pdk: "sky130A"
+  flow_mode: "flat"  # flat | hierarchical | auto
+
+execution:
+  mode: "local"
+  tool_timeout_seconds: 3600
+
+intent:
+  prompt: "Optimize timing closure for 8-bit counter on sky130"
+  weights_hint:
+    timing: 0.7
+    area: 0.3
+
+flow_control:
+  budgets:
+    physical_attempts_per_stage: 6
+    cognitive_retries_per_attempt: 2
+
+parallel:
+  enabled: true
+  max_parallel_branches: 2
+  max_parallel_jobs: 2
+
+# LLM configuration — uses Google Gemini by default.
+# Set GEMINI_API_KEY environment variable before running.
+# Override with --model flag, e.g.: agenticlane run ... --model claude-3.5-sonnet
+llm:
+  mode: "api"
+  provider: "litellm"
+  models:
+    master: "gemini/gemini-2.5-pro"
+    worker: "gemini/gemini-2.5-pro"
+    judge:
+      - "gemini/gemini-2.5-pro"
+  temperature: 0.0
+  seed: 42

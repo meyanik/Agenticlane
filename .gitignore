@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment/secrets
+.env
+.env.local
+
+# AgenticLane run outputs
+runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dashboard frontend (separate repo)
+dashboard-ui/
+
+# ChromaDB knowledge base (too large for git)
+agenticlane/knowledge/chroma_db/
+
+# LibreLane (external dependency)
+librelane/
+
+# RAG project data
+RAG_PROJECT/
+
+# Generated images
+images_generated/
+
+# Nix
+.venv-nix/
+
+# Example run outputs (GDSII, logs, etc.)
+examples/*/runs/
+examples/*/baseline_test/
+
+# Hypothesis test data
+.hypothesis/
+
+# Claude
+.claude/

@@ -1,0 +1,58 @@
+# AgenticLane "safe" profile
+# SDC templated, Tcl disabled, all constraints locked, parallel off.
+# This is the most conservative profile -- safe for first-time runs.
+
+project:
+  name: "unnamed"
+  run_id: "auto"
+  output_dir: "./runs"
+
+execution:
+  mode: "local"
+  tool_timeout_seconds: 21600
+  workspace:
+    isolation: "per_attempt"
+    base_clone_strategy: "reflink_or_hardlink"
+
+flow_control:
+  stage_granularity: "major"
+  budgets:
+    physical_attempts_per_stage: 12
+    cognitive_retries_per_attempt: 3
+  deadlock_policy: "auto_relax"
+
+parallel:
+  enabled: false
+  max_parallel_branches: 1
+  max_parallel_jobs: 1
+
+action_space:
+  permissions:
+    config_vars: true
+    macro_placements: true
+    sdc: true
+    tcl: false
+    rtl_eco: false
+  sdc:
+    mode: "templated"
+
+constraints:
+  locked_vars:
+    - "CLOCK_PERIOD"
+  allow_relaxation: false
+  locked_aspects:
+    - "clock_period"
+    - "timing_exceptions"
+    - "max_min_delay"
+    - "clock_uncertainty"
+
+artifact_gc:
+  enabled: true
+  policy: "keep_pass_and_tips"
+  max_run_disk_gb: 40
+
+llm:
+  mode: "local"
+  provider: "litellm"
+  temperature: 0.0
+  seed: 42

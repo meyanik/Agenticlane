@@ -1,0 +1,7 @@
+# Golden timing report for testing
+# Generated for AgenticLane test suite
+wns -0.1500
+tns -1.5000
+Clock clk Period: 10.000
+  Setup WNS: -0.1500 ns
+  Setup TNS: -1.5000 ns

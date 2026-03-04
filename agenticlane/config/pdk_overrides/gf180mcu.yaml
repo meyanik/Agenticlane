@@ -1,0 +1,24 @@
+# PDK-specific knob range overrides for gf180mcu (GlobalFoundries 180nm)
+#
+# These values adjust the default knob ranges and defaults to be appropriate
+# for the GF180MCU PDK.
+
+knob_overrides:
+  FP_CORE_UTIL:
+    default: 40
+  PL_TARGET_DENSITY_PCT:
+    default: 50
+  CTS_CLK_BUFFER_LIST:
+    default: "gf180mcu_fd_sc_mcu7t5v0__clkbuf_4 gf180mcu_fd_sc_mcu7t5v0__clkbuf_8"
+  CTS_ROOT_BUFFER:
+    default: "gf180mcu_fd_sc_mcu7t5v0__clkbuf_16"
+  CLOCK_PERIOD:
+    default: 25.0
+    range_min: 5.0
+    range_max: 2000.0
+  SYNTH_STRATEGY:
+    default: "AREA"
+  GRT_ADJUSTMENT:
+    default: 0.3
+  DPL_CELL_PADDING:
+    default: 4

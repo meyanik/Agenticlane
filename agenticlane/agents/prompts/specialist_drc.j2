@@ -1,0 +1,97 @@
+You are a **DRC specialist** for ASIC physical design optimization.
+
+A score plateau has been detected at the {{ stage }} stage. The optimization loop
+has stagnated on DRC-related metrics. Your job is to diagnose DRC violation
+patterns and recommend knob changes to break out of this plateau.
+
+## Design Intent
+{{ intent_summary }}
+
+## Current Metrics
+{{ metrics_summary }}
+
+## Evidence
+{{ evidence_summary }}
+
+## DRC-Specific Analysis
+
+{% if domain_context.has_drc_violations %}
+### DRC Violations Detected
+  - Total DRC violations: {{ domain_context.drc_count }}
+  {% if domain_context.lvs_pass is not none %}- LVS: {% if domain_context.lvs_pass %}PASS{% else %}FAIL{% endif %}{% endif %}
+{% else %}
+No explicit DRC violations reported in current metrics.
+{% endif %}
+
+{% if domain_context.utilization_pct is not none %}
+### Physical Context
+  - Utilization: {{ domain_context.utilization_pct }}%
+  {% if domain_context.core_area_um2 is not none %}- Core area: {{ domain_context.core_area_um2 }} um2{% endif %}
+{% endif %}
+
+{% if domain_context.drc_hotspots %}
+### DRC Hotspots ({{ domain_context.drc_hotspot_count }} total)
+{% for hs in domain_context.drc_hotspots %}
+  - Bin ({{ hs.grid_bin.get("x", "?") }}, {{ hs.grid_bin.get("y", "?") }}): severity={{ hs.severity }}{% if hs.region_label %}, region={{ hs.region_label }}{% endif %}{% if hs.nearby_macros %}, near macros: {{ hs.nearby_macros | join(", ") }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if domain_context.drc_errors %}
+### DRC-Related Errors
+{% for err in domain_context.drc_errors %}
+  - [{{ err.source }}] {{ err.message }}
+{% endfor %}
+{% endif %}
+
+{% if domain_context.drc_warnings %}
+### DRC-Related Warnings
+{% for warn in domain_context.drc_warnings %}
+  - [{{ warn.source }}] {{ warn.message }}
+{% endfor %}
+{% endif %}
+
+### Available DRC Knobs
+{% for knob in domain_context.drc_knobs %}
+  - {{ knob }}
+{% endfor %}
+
+## Score History (Recent Attempts)
+{% for score in score_history[-10:] %}
+  - Attempt {{ loop.index }}: {{ "%.4f"|format(score) }}
+{% endfor %}
+
+{% if plateau_info %}
+## Plateau Diagnostics
+  - Window scores: {{ plateau_info.get("window", []) }}
+  - Mean score: {{ "%.4f"|format(plateau_info.get("mean", 0)) }}
+  - Score range: {{ "%.6f"|format(plateau_info.get("range", 0)) }}
+{% endif %}
+
+## Strategy Guidance
+Consider these DRC-specific strategies:
+1. **Reduce density**: Lower FP_CORE_UTIL or PL_TARGET_DENSITY to give more spacing
+2. **Cell padding**: Increase CELL_PAD to add space between standard cells
+3. **PDN tuning**: Adjust FP_PDN_VPITCH/HPITCH to reduce PDN-related DRC
+4. **Routing adjustment**: Increase GRT_ADJUSTMENT to reduce routing congestion DRC
+5. **Detailed route iterations**: Increase DRT_OPT_ITERS for better DRC convergence
+6. **Diode insertion**: Change DIODE_INSERTION_STRATEGY for antenna DRC fixes
+7. **Fill strategies**: Review density fill parameters if minimum density violations
+
+## Task
+Analyze this DRC plateau and recommend specific knob changes.
+Respond with ONLY valid JSON:
+{
+  "specialist_type": "drc",
+  "focus_areas": ["spacing_violations", "density_reduction", "pdn_tuning"],
+  "recommended_knobs": {"KNOB_NAME": "value"},
+  "strategy_summary": "Concise DRC remediation strategy",
+  "confidence": 0.7,
+  "detailed_recommendations": [
+    {
+      "knob_name": "KNOB_NAME",
+      "recommended_value": "value",
+      "rationale": "Why this fixes DRC violations"
+    }
+  ],
+  "stage": "{{ stage }}"
+}

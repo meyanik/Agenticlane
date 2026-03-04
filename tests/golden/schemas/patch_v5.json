@@ -1,0 +1,22 @@
+{
+  "schema_version": 5,
+  "patch_id": "golden-patch-001",
+  "stage": "FLOORPLAN",
+  "types": ["config_vars", "macro_placements"],
+  "config_vars": {
+    "FP_CORE_UTIL": 55,
+    "PL_TARGET_DENSITY_PCT": 60
+  },
+  "macro_placements": [
+    {
+      "instance": "U_SRAM_0",
+      "location_hint": "NW",
+      "x": 10.0,
+      "y": 20.0,
+      "orientation": "N"
+    }
+  ],
+  "sdc_edits": [],
+  "tcl_edits": [],
+  "rationale": "Golden test: adjusted core utilization and placed SRAM"
+}

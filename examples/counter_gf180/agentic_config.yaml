@@ -1,0 +1,40 @@
+project:
+  name: "counter_gf180"
+  run_id: "auto"
+  output_dir: "./runs"
+
+design:
+  librelane_config_path: "./config.yaml"
+  pdk: "gf180mcuD"
+  flow_mode: "flat"  # flat | hierarchical | auto
+
+execution:
+  mode: "local"
+  tool_timeout_seconds: 3600
+
+intent:
+  prompt: "Optimize timing closure for 8-bit counter on gf180mcu"
+  weights_hint:
+    timing: 0.7
+    area: 0.3
+
+flow_control:
+  budgets:
+    physical_attempts_per_stage: 6
+    cognitive_retries_per_attempt: 2
+
+parallel:
+  enabled: true
+  max_parallel_branches: 2
+  max_parallel_jobs: 2
+
+llm:
+  mode: "api"
+  provider: "litellm"
+  models:
+    master: "anthropic/claude-sonnet-4-20250514"
+    worker: "anthropic/claude-sonnet-4-20250514"
+    judge:
+      - "anthropic/claude-sonnet-4-20250514"
+  temperature: 0.0
+  seed: 42

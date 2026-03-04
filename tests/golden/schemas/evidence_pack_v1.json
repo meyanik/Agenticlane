@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "stage": "CTS",
+  "attempt": 2,
+  "execution_status": "success",
+  "errors": [
+    {
+      "source": "openroad.log",
+      "severity": "error",
+      "message": "Hold violation on path clk->reg_q",
+      "count": 3
+    }
+  ],
+  "warnings": [
+    {
+      "source": "openroad.log",
+      "severity": "warning",
+      "message": "High fanout net detected",
+      "count": 1
+    }
+  ],
+  "spatial_hotspots": [
+    {
+      "type": "congestion",
+      "grid_bin": {"x": 2, "y": 1},
+      "region_label": "NW quadrant",
+      "severity": 0.82,
+      "nearby_macros": ["U_SRAM_0"],
+      "x_min_um": 0.0,
+      "y_min_um": 500.0,
+      "x_max_um": 250.0,
+      "y_max_um": 1000.0
+    }
+  ],
+  "missing_reports": [],
+  "bounded_snippets": []
+}

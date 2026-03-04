@@ -1,0 +1,25 @@
+# PDK-specific knob range overrides for sky130A
+#
+# These values adjust the default knob ranges and defaults to be appropriate
+# for the SkyWater 130nm PDK.  They are loaded by the config loader and
+# applied to the KnobSpec registry at startup.
+
+knob_overrides:
+  FP_CORE_UTIL:
+    default: 45
+  PL_TARGET_DENSITY_PCT:
+    default: 55
+  CTS_CLK_BUFFER_LIST:
+    default: "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8"
+  CTS_ROOT_BUFFER:
+    default: "sky130_fd_sc_hd__clkbuf_16"
+  CLOCK_PERIOD:
+    default: 10.0
+    range_min: 1.0
+    range_max: 1000.0
+  SYNTH_STRATEGY:
+    default: "AREA"
+  GRT_ADJUSTMENT:
+    default: 0.3
+  DPL_CELL_PADDING:
+    default: 4
