@@ -66,5 +66,8 @@ examples/*/baseline_test/
 # Hypothesis test data
 .hypothesis/
 
+# Development tracking
+tracking/
+
 # Claude
 .claude/
