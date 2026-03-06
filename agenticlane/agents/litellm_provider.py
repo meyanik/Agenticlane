@@ -69,6 +69,12 @@ class LiteLLMProvider(LLMProvider):
         if self._is_local and not self._default_model.startswith("openai/"):
             self._default_model = f"openai/{self._default_model}"
 
+        # Tell litellm to silently drop parameters unsupported by a
+        # provider (e.g. ``seed`` for Anthropic, ``response_format`` for
+        # some endpoints) instead of raising UnsupportedParamsError.
+        if litellm is not None:
+            litellm.drop_params = True
+
     async def _call(
         self,
         prompt: str,
@@ -131,8 +137,8 @@ class LiteLLMProvider(LLMProvider):
             # --- Cloud APIs ---
             # Force JSON output mode for cloud providers that support it
             call_kwargs["response_format"] = {"type": "json_object"}
-            # Gemini does not support the seed parameter
-            if not effective_model.startswith("gemini/"):
+            # Gemini and Anthropic do not support the seed parameter
+            if not effective_model.startswith(("gemini/", "anthropic/")):
                 call_kwargs["seed"] = seed
 
         response = await litellm.acompletion(**call_kwargs)

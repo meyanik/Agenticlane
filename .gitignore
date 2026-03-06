@@ -39,8 +39,10 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
-# Dashboard frontend (separate repo)
-dashboard-ui/
+# Dashboard frontend build artifacts
+dashboard-ui/node_modules/
+dashboard-ui/dist/
+dashboard-ui/tsconfig.tsbuildinfo
 
 # ChromaDB knowledge base (too large for git)
 agenticlane/knowledge/chroma_db/

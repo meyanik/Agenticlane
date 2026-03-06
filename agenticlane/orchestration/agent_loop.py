@@ -127,7 +127,7 @@ class AgentStageLoop:
         baseline_attempt_dir = self.workspace.create_attempt_dir(
             branch_dir, stage_name, 0
         )
-        baseline_metrics, baseline_evidence = await self._run_baseline(
+        baseline_metrics, baseline_evidence, baseline_state_out = await self._run_baseline(
             stage_name=stage_name,
             attempt_dir=baseline_attempt_dir,
             run_dir=run_dir,
@@ -141,7 +141,7 @@ class AgentStageLoop:
         best_attempt = 0
         best_metrics = baseline_metrics
         best_evidence = baseline_evidence
-        best_state_out: Optional[str] = None
+        best_state_out: Optional[str] = baseline_state_out
         state_in = baseline_state_in
         last_rejection: Optional[PatchRejected] = None
 
@@ -470,8 +470,11 @@ class AgentStageLoop:
         run_dir: Path,
         run_id: str,
         state_in_path: Optional[str],
-    ) -> tuple[MetricsPayload, EvidencePack]:
-        """Run baseline (attempt 0) with empty patch."""
+    ) -> tuple[MetricsPayload, EvidencePack, Optional[str]]:
+        """Run baseline (attempt 0) with empty patch.
+
+        Returns (metrics, evidence, state_out_path).
+        """
         empty_patch: dict[str, Any] = {"config_vars": {}}
 
         exec_result = await self.adapter.run_stage(
@@ -504,7 +507,7 @@ class AgentStageLoop:
             evidence.model_dump_json(indent=2)
         )
 
-        return metrics, evidence
+        return metrics, evidence, exec_result.state_out_path
 
     async def _distill(
         self,

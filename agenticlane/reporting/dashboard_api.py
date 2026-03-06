@@ -44,13 +44,13 @@ STAGE_ORDER = [
 
 
 def list_runs(runs_dir: Path) -> list[str]:
-    """List available run IDs."""
+    """List available run IDs (including active/crashed runs without manifest)."""
     if not runs_dir.exists():
         return []
     return sorted(
         d.name
         for d in runs_dir.iterdir()
-        if d.is_dir() and (d / "manifest.json").exists()
+        if d.is_dir() and d.name.startswith("run_")
     )
 
 
@@ -98,6 +98,68 @@ def _load_json(path: Path) -> dict[str, Any] | None:
         return None
 
 
+def _derive_run_status(runs_dir: Path, run_id: str, manifest: dict[str, Any]) -> dict[str, Any]:
+    """Derive actual run status from stage data on disk.
+
+    The orchestrator's manifest lacks a ``status`` field and reports
+    ``total_stages`` as stages *attempted*, not stages *passed*.
+    This helper walks the stage directories to compute the true counts
+    and an accurate overall status.
+
+    Stage categories:
+    - **passed**: judge approved the stage
+    - **executed**: EDA tool succeeded but judge didn't run/approve
+    - **failed**: EDA tool crashed
+
+    Returns a dict with keys: ``status``, ``stages_passed``, ``stages_failed``.
+    """
+    run_dir = runs_dir / run_id
+    stages_passed = 0  # judge approved OR execution succeeded
+    stages_failed = 0  # tool crashed
+    stages_attempted = 0
+
+    for stage_name in STAGE_ORDER:
+        for branch_dir in sorted(run_dir.glob("branches/*/stages")):
+            stage_dir = branch_dir / stage_name
+            if not stage_dir.exists():
+                continue
+            attempts = sorted(stage_dir.glob("attempt_*"))
+            if not attempts:
+                continue
+            stages_attempted += 1
+            judge_passed = False
+            exec_succeeded = False
+            for att_dir in attempts:
+                checkpoint = _load_json(att_dir / "checkpoint.json")
+                if checkpoint and checkpoint.get("status") == "passed":
+                    judge_passed = True
+                    break
+                att_metrics = _load_json(att_dir / "metrics.json")
+                if att_metrics and att_metrics.get("execution_status") == "success":
+                    exec_succeeded = True
+            if judge_passed or exec_succeeded:
+                stages_passed += 1
+            else:
+                stages_failed += 1
+            break  # Only first matching branch
+
+    # Derive overall status
+    if stages_attempted == 0:
+        status = "unknown"
+    elif stages_passed == stages_attempted:
+        status = "completed"
+    elif stages_passed > 0:
+        status = "partial"
+    else:
+        status = "failed"
+
+    return {
+        "status": status,
+        "stages_passed": stages_passed,
+        "stages_failed": stages_failed,
+    }
+
+
 # ------------------------------------------------------------------ #
 # Router factory
 # ------------------------------------------------------------------ #
@@ -136,21 +198,39 @@ def create_api_router(
         """List all runs with summary metadata."""
         run_ids = list_runs(runs_dir)
         summaries: list[dict[str, Any]] = []
+        # Build set of active run IDs for status annotation
+        active_ids: set[str] = set()
+        if run_manager is not None:
+            for a in run_manager.get_active():
+                active_ids.add(a["run_id"])
         for rid in run_ids:
             manifest = load_manifest(runs_dir, rid)
             if manifest is None:
-                summaries.append({"run_id": rid})
+                status = "running" if rid in active_ids else "unknown"
+                # Check for crash via stderr
+                stderr_path = runs_dir / rid / "stderr.log"
+                if status == "unknown" and stderr_path.exists():
+                    try:
+                        text = stderr_path.read_text()[-500:]
+                        if text.strip():
+                            status = "crashed"
+                    except OSError:
+                        pass
+                summaries.append({"run_id": rid, "status": status})
                 continue
+            # Derive actual status from stage data (manifest has no status field)
+            derived = _derive_run_status(runs_dir, rid, manifest)
             summaries.append({
                 "run_id": rid,
                 "flow_mode": manifest.get("flow_mode", "flat"),
                 "best_composite_score": manifest.get("best_composite_score"),
                 "best_branch_id": manifest.get("best_branch_id"),
                 "total_stages": manifest.get("total_stages", 0),
+                "stages_passed": derived["stages_passed"],
                 "total_attempts": manifest.get("total_attempts", 0),
                 "duration_seconds": manifest.get("duration_seconds"),
                 "start_time": manifest.get("start_time"),
-                "status": manifest.get("status", "completed"),
+                "status": derived["status"],
             })
         return JSONResponse(content={"runs": summaries})
 
@@ -159,6 +239,11 @@ def create_api_router(
         manifest = load_manifest(runs_dir, run_id)
         if manifest is None:
             raise HTTPException(status_code=404, detail="manifest not found")
+        # Enrich with derived status (manifest lacks accurate status)
+        derived = _derive_run_status(runs_dir, run_id, manifest)
+        manifest["status"] = derived["status"]
+        manifest["stages_passed"] = derived["stages_passed"]
+        manifest["stages_failed"] = derived["stages_failed"]
         return JSONResponse(content=manifest)
 
     @router.get("/runs/{run_id}/branches")
@@ -225,7 +310,8 @@ def create_api_router(
                 # Load best attempt metrics
                 best_score = -1.0
                 best_metrics = None
-                passed = False
+                judge_passed = False
+                exec_succeeded = False
                 for att_dir in attempts:
                     score_file = att_dir / "composite_score.json"
                     score_data = _load_json(score_file)
@@ -235,9 +321,19 @@ def create_api_router(
                         best_metrics = _load_json(att_dir / "metrics.json")
                     checkpoint = _load_json(att_dir / "checkpoint.json")
                     if checkpoint and checkpoint.get("status") == "passed":
-                        passed = True
+                        judge_passed = True
+                    # Check if the EDA tool itself succeeded
+                    att_metrics = _load_json(att_dir / "metrics.json")
+                    if att_metrics and att_metrics.get("execution_status") == "success":
+                        exec_succeeded = True
 
-                stage_info["status"] = "passed" if passed else "failed"
+                # "passed" = judge approved, "executed" = EDA tool succeeded
+                # but judge didn't run or didn't approve, "failed" = tool crashed
+                stage_info["status"] = (
+                    "passed" if judge_passed
+                    else "executed" if exec_succeeded
+                    else "failed"
+                )
                 stage_info["best_score"] = best_score if best_score >= 0 else None
                 if best_metrics:
                     stage_info["execution_status"] = best_metrics.get(
@@ -482,8 +578,22 @@ def create_api_router(
             )
         stopped = await run_manager.stop_run(run_id)
         if not stopped:
+            # Run already finished or crashed — return success instead of 404
+            status = run_manager.get_run_status(run_id)
+            if status is not None:
+                return JSONResponse(content={
+                    "status": "already_finished",
+                    "run_id": run_id,
+                    "exit_code": status.get("exit_code"),
+                })
+            # Fallback: run dir exists on filesystem (dashboard was restarted)
+            if (runs_dir / run_id).exists():
+                return JSONResponse(content={
+                    "status": "already_finished",
+                    "run_id": run_id,
+                })
             raise HTTPException(
-                status_code=404, detail="Run not found or not active"
+                status_code=404, detail="Run not found"
             )
         return JSONResponse(content={"status": "stopped", "run_id": run_id})
 
@@ -494,5 +604,40 @@ def create_api_router(
             return JSONResponse(content={"active": []})
         active = run_manager.get_active()
         return JSONResponse(content={"active": active})
+
+    @router.get("/runs/{run_id}/status")
+    async def api_get_run_status(run_id: str) -> JSONResponse:
+        """Get status of a run (active, finished, or crashed)."""
+        if run_manager is not None:
+            status = run_manager.get_run_status(run_id)
+            if status is not None:
+                return JSONResponse(content=status)
+        # Fallback: check if manifest exists (run completed normally)
+        manifest_path = runs_dir / run_id / "manifest.json"
+        if manifest_path.exists():
+            return JSONResponse(content={
+                "run_id": run_id, "status": "finished",
+            })
+        # Check if run dir exists at all
+        run_dir = runs_dir / run_id
+        if run_dir.exists():
+            # Check for stderr.log — indicates a crashed run whose info
+            # was lost (e.g. dashboard was restarted after crash)
+            stderr_path = run_dir / "stderr.log"
+            if stderr_path.exists():
+                try:
+                    stderr_text = stderr_path.read_text()[-2000:]
+                except OSError:
+                    stderr_text = ""
+                if stderr_text.strip():
+                    return JSONResponse(content={
+                        "run_id": run_id,
+                        "status": "crashed",
+                        "error": stderr_text,
+                    })
+            return JSONResponse(content={
+                "run_id": run_id, "status": "unknown",
+            })
+        raise HTTPException(status_code=404, detail="Run not found")
 
     return router

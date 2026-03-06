@@ -1,0 +1,356 @@
+/* Agent Logs page — terminal-aesthetic log viewer */
+
+.agent-logs-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.agent-logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.agent-logs-run-select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  min-width: 260px;
+}
+
+/* Filter bar */
+.log-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.log-filters-roles {
+  display: flex;
+  gap: 6px;
+}
+
+.log-role-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  font-family: inherit;
+}
+
+.log-role-btn:hover {
+  opacity: 0.85;
+}
+
+.log-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #0d1117;
+}
+
+.log-filters-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.log-stage-select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.log-search {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  width: 180px;
+}
+
+.log-search::placeholder {
+  color: var(--text-dim);
+}
+
+.log-autoscroll {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Terminal timeline */
+.log-timeline {
+  position: relative;
+  background: #0a0e14;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 0;
+  height: calc(100vh - 380px);
+  min-height: 400px;
+  overflow-y: auto;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* Scanline overlay */
+.log-timeline-scanline {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.015) 2px,
+    rgba(255, 255, 255, 0.015) 4px
+  );
+  border-radius: 8px;
+}
+
+.log-timeline-empty {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.log-timeline-loading {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 60px 24px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Stage dividers */
+.log-stage-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px 4px;
+  margin: 4px 0 0;
+  flex-wrap: wrap;
+}
+
+.log-stage-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.log-stage-divider-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.log-stage-divider-desc {
+  width: 100%;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  padding: 0 0 4px;
+  line-height: 1.4;
+}
+
+/* Log entry row */
+.log-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+  z-index: 2;
+}
+
+.log-entry-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.log-entry.live .log-entry-row {
+  background: rgba(88, 166, 255, 0.04);
+}
+
+.log-entry-time {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  width: 70px;
+}
+
+.log-entry-role {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #0a0e14;
+  flex-shrink: 0;
+}
+
+.log-entry-type {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.log-entry-summary {
+  flex: 1;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-entry-stage {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(88, 166, 255, 0.12);
+  color: var(--accent);
+}
+
+.log-entry-attempt {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.log-entry-expand {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  width: 16px;
+  text-align: center;
+}
+
+/* Expanded detail */
+.log-detail {
+  background: #080b10;
+  border-left: 2px solid var(--border);
+  margin: 0 16px 4px 114px;
+  padding: 8px 12px;
+  border-radius: 0 4px 4px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.log-detail-row {
+  display: flex;
+  gap: 12px;
+  padding: 2px 0;
+  font-size: 0.8rem;
+}
+
+.log-detail-key {
+  color: var(--text-dim);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.log-detail-error {
+  color: var(--red);
+}
+
+.log-detail-json {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  overflow-x: auto;
+  max-height: 200px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Blinking cursor */
+.log-cursor {
+  padding: 4px 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.log-cursor-blink {
+  color: var(--accent);
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .agent-logs-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .agent-logs-run-select {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .log-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .log-filters-roles {
+    flex-wrap: wrap;
+  }
+
+  .log-filters-controls {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .log-search {
+    width: 100%;
+  }
+
+  .log-detail {
+    margin-left: 16px;
+  }
+}

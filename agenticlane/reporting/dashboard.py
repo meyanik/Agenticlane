@@ -535,6 +535,12 @@ def create_dashboard_app(
     file_watcher = RunFileWatcher(event_bus)
     run_manager = DashboardRunManager()
 
+    # Register callback so new runs get a file watcher automatically
+    async def _on_new_run(run_id: str, rd: Path) -> None:
+        await file_watcher.watch_run(run_id, rd)
+
+    run_manager.on_run_start(_on_new_run)
+
     @asynccontextmanager
     async def _lifespan(app: Any) -> Any:
         # Startup: begin watching existing runs
@@ -562,6 +568,8 @@ def create_dashboard_app(
         import json as _json
 
         async def event_stream() -> Any:
+            # Send initial comment so EventSource fires 'open' immediately
+            yield ": connected\n\n"
             async for event in event_bus.subscribe(run_id):
                 data = _json.dumps(event)
                 yield f"event: {event['type']}\ndata: {data}\n\n"
@@ -582,6 +590,7 @@ def create_dashboard_app(
         import json as _json
 
         async def event_stream() -> Any:
+            yield ": connected\n\n"
             async for event in event_bus.subscribe_global():
                 data = _json.dumps(event)
                 yield f"event: {event['type']}\ndata: {data}\n\n"

@@ -404,6 +404,11 @@ class SequentialOrchestrator:
                     scheduler.update_branch_score(
                         branch_id, slr.best_score, stage_name, slr.best_attempt
                     )
+                    # Even when the judge rejects, propagate the best state_out
+                    # so the NEXT stage can use it (auto_relax forces continuation).
+                    # Without this, the next stage gets None and can't find inputs.
+                    if slr.state_out_path:
+                        bstate["state_in"] = slr.state_out_path
 
                     # --- Rollback decision ---
                     try:
